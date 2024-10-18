@@ -1,27 +1,18 @@
-const { ToDo } = require('../models'); 
+const { Todo } = require('../models'); 
 
 exports.createToDo = async (req, res) => {
+    const { title, description, category, deadline } = req.body;
     try {
-        const { title, description, category, deadline } = req.body;
-        const userId = req.user.id; 
-        
-        const newTodo = await Todo.create({
-            title,
-            description,
-            category,
-            deadline,
-            userId 
-        });
-
-        return res.status(201).json(newTodo);
+        const todo = await Todo.create({ title, description, category, userId: req.user.id, createdAt: new Date(), deadline });
+        res.status(201).json({ message: 'ToDo created', todo });
     } catch (error) {
-        return res.status(500).json({ message: 'Something went wrong', error });
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
-exports.getAllToDos = async (res) => {
+exports.getAllToDos = async (req, res) => {
     try {
-        const todos = await ToDo.findAll();
+        const todos = await Todo.findAll({ where: { userId: req.user.id } }); 
         res.json(todos);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -31,7 +22,7 @@ exports.getAllToDos = async (res) => {
 exports.getToDoById = async (req, res) => {
     const { id } = req.params;
     try {
-        const todo = await ToDo.findByPk(id);
+        const todo = await Todo.findOne({ where: { id, userId: req.user.id } }); 
         if (!todo) {
             return res.status(404).json({ message: 'ToDo not found' });
         }
@@ -41,11 +32,12 @@ exports.getToDoById = async (req, res) => {
     }
 };
 
+
 exports.updateToDo = async (req, res) => {
     const { id } = req.params;
     const { title, description, category, deadline } = req.body;
     try {
-        const todo = await ToDo.findByPk(id);
+        const todo = await Todo.findOne({ where: { id, userId: req.user.id } }); 
         if (!todo) {
             return res.status(404).json({ message: 'ToDo not found' });
         }
@@ -59,7 +51,7 @@ exports.updateToDo = async (req, res) => {
 exports.deleteToDoById = async (req, res) => {
     const { id } = req.params;
     try {
-        const todo = await ToDo.findByPk(id);
+        const todo = await Todo.findOne({ where: { id, userId: req.user.id } }); 
         if (!todo) {
             return res.status(404).json({ message: 'ToDo not found' });
         }
@@ -72,7 +64,7 @@ exports.deleteToDoById = async (req, res) => {
 
 exports.deleteAllToDos = async (req, res) => {
     try {
-        await ToDo.destroy({ where: {} });
+        await Todo.destroy({ where: { userId: req.user.id } }); 
         res.json({ message: 'All ToDos deleted' });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
