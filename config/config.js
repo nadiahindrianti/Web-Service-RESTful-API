@@ -21,5 +21,7 @@ const config = {
 
 console.log('MySQL User:', process.env.MYSQL_USER);
 console.log('MySQL Host:', process.env.MYSQL_HOST);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL:', process.env.DATABASE_URL);
 
 module.exports = config;
